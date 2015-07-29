@@ -27,6 +27,7 @@ import win32com.client
 import os
 import zipfile
 import uuid
+import os_version
 
 vba_source_control_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Modules"
 ribbon_xml_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
@@ -56,6 +57,7 @@ def build_addin(pres, path):
         for k, v in refs.iteritems():
             try:
                 pres.VBProject.References.AddFromFile(v)
+
             except Exception:
                 # non-critical errors can be passed.
                 print 'failed to add reference to: ' + k + ' from ' + v
@@ -150,14 +152,21 @@ def ref_dict(pres):
     version = str(int(float(pres.Application.version)))
 
     d["Microsoft ActiveX Data Objects 6.1 Libarary"] = r'C:\Program Files (x86)\Common Files\System\ado\msado15.dll'
+    #d["VBA"] = r'C:\Program Files (x86)\Common Files\microsoft shared\VBA\VBA7\VBE7.DLL'
+    # .AddFromGuid('{000204EF-0000-0000-C000-000000000046}')
+    d["VBIDE"] = r'C:\Program Files (x86)\Common Files\Microsoft Shared\VBA\VBA6\VBE6EXT.OLB'
     d["Microsoft XML, v6.0"] = r'C:\Windows\System32\msxml6.dll'
     d["Microsoft Excel"] = r'C:\Program Files (x86)\Microsoft Office\Office'+version+'\EXCEL.EXE'
-    d["Visual Basic for Applications Extensibility"] = r'C:\Program Files (x86)\Common Files\microsoft shared\VBA\VBA7\VBE7.DLL'
-    #pres.VBProject.References.AddFromFile(r'C:\PROGRA~2\COMMON~1\MICROS~1\VBA\VBA7\VBE7.DLL')
-    if version == '14':
+    # Note: stdole and MSForms are unnecessary
+    if os_version.Is64Windows():
+        #64-b location
         d["Microsoft Windows Common Controls 6.0 (SP6)"] = r'C:\Windows\SysWOW64\MSCOMCTL.OCX'
+        #d["stdole2"] = r'C:\Windows\SysWOW64\stdole2.tlb'
+        #d["MSForms"] = r'C:\Windows\SysWOW64\FM20.DLL'
     else:
         d["Microsoft Windows Common Controls 6.0 (SP6)"] = r'C:\Windows\System32\MSCOMCTL.OCX'
+        #d["MSForms"] = r'C:\Windows\System32\FM20.DLL'
+        #d["stdole2"] = r'C:\Windows\System32\stdole2.tlb'
 
     return d
 
