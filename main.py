@@ -29,9 +29,9 @@ import zipfile
 import uuid
 import os_version
 
-vba_source_control_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Modules"
-ribbon_xml_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
-ribbon_logo_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\jdplogo.jpg"
+vba_source_control_path = r"C:\Repos\CB\Desktop\VBA\ChartBuilder_PPT\Modules"
+ribbon_xml_path = r"C:\Repos\CB\Desktop\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
+ribbon_logo_path = r"C:\Repos\CB\Desktop\VBA\ChartBuilder_PPT\Ribbon XML\jdplogo.jpg"
 output_path = r"C:\debug\output.pptm"
 customUI = True
 
