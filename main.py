@@ -29,9 +29,9 @@ import zipfile
 import uuid
 import os_version
 
-vba_source_control_path = r"C:\Repos\CB\Desktop\VBA\ChartBuilder_PPT\Modules"
-ribbon_xml_path = r"C:\Repos\CB\Desktop\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
-ribbon_logo_path = r"C:\Repos\CB\Desktop\VBA\ChartBuilder_PPT\Ribbon XML\jdplogo.jpg"
+vba_source_control_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Modules"
+ribbon_xml_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
+ribbon_logo_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\jdplogo.jpg"
 output_path = r"C:\debug\output.pptm"
 customUI = True
 
@@ -86,7 +86,7 @@ def build_ribbon_zip():
         5. converts the .ZIP to a PPTM
 
     """
-
+    bom = u'\ufeff'
     _path=output_path.replace('.pptm', '.zip')
     copy_path=r'C:\debug\copy.zip'
 
@@ -105,20 +105,20 @@ def build_ribbon_zip():
     copy.write(ribbon_logo_path, r'\CustomUI\images\jdplogo.jpg')
 
     # append the CustomUI xml part to the .zip and create the archive
+
     copy.write(ribbon_xml_path, r'\CustomUI\customUI14.xml')
 
     # create the string & append the .rels to CustomUI\_rels
-    rels_xml=r'<?xml version="1.0" encoding="utf-8" ?>'
-    rels_xml += r'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
-    rels_xml += r'<Relationship Id="jdplogo" Type=http://schemas.openxmlformats.org/officeDocument/2006/'
-    rels_xml += r'relationships/image" Target="images/jdplogo.jpg"/>'
-    rels_xml += r'</Relationships>'
+    rels_xml = """<?xml version="1.0" encoding="utf-8" ?>
+        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+        <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="/images/jdplogo.jpg" Id="jdplogo" />
+    </Relationships>"""
 
     copy.writestr(r'CustomUI\_rels\customUI14.xml.rels', rels_xml.encode('utf-8'))
 
     # get the existing _rels/.rels XML content and copy to the copied archiveI:
 
-    rels_xml = r'<?xml version="1.0" encoding="utf-8"?>'
+    rels_xml = r'<?xml version="1.0" encoding="utf-8" ?>'
     rels_xml += r'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     rels_xml += r'<Relationship Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/'
     rels_xml += r'core-properties" '
@@ -137,8 +137,10 @@ def build_ribbon_zip():
     z.close()
     copy.close()
 
+    #print 'removing ' + _path
     os.remove(_path)
     #os.remove(output_path)
+    #print 'renaming ' + copy_path + ' to ' + output_path
     os.rename(copy_path, output_path)
 
 def ref_dict(pres):
