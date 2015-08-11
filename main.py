@@ -1,7 +1,7 @@
 __author__ = 'david_zemens'
 
 """
-Version 1
+Version 2
 *****************************************************************
 This script contains methods to build a PPAM file from module code under source control repository
         1. adds all of the VBComponents to the working PPTM file
@@ -10,14 +10,11 @@ This script contains methods to build a PPAM file from module code under source 
         4. Adds the CustomUI XML, jdplogo.jpg, etc. to the .ZIP directory
         5. converts the .ZIP to a PPTM
 
-Known Issues: PowerPoint needs to "repair" this file the first time a user opens it.
-User should open the PPTM output file, and then "repair" the file, then close PowerPoint and re-open.
-Ensure that the code compiles and no references are missing/broken (if so, they can be added manually)
-
 *****************************************************************
 
 :param vba_source_control_path: specify the local folder which contains the modules to be imported
 :param output_path: specify the destination path & filename (.pptm) for the build file
+;param copy_path: a temporary copy of the .ZIP archive must be created for read/write
 :param ribbon_xml_path: specify the destination path & filename for the Ribbon XML
 :param ribbon_logo_path: specify the path & name of the logo file "jdplogo.jpg"
 :param CustomUI: boolean, define this as False if you do NOT want to add the CustomUI xml/etc.
@@ -35,6 +32,7 @@ vba_source_control_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Module
 ribbon_xml_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
 ribbon_logo_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\jdplogo.jpg"
 output_path = r"C:\debug\output.pptm"
+copy_path=r'C:\debug\copy.zip'
 customUI = True
 
 def build_addin(pres, path):
@@ -90,7 +88,7 @@ def build_ribbon_zip():
     """
     bom = u'\ufeff'
     _path=output_path.replace('.pptm', '.zip')
-    copy_path=r'C:\debug\copy.zip'
+
 
     # Convert to ZIP archive
     os.rename(output_path, _path)
