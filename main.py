@@ -28,6 +28,8 @@ import os
 import zipfile
 import uuid
 import os_version
+import xml.etree.ElementTree as ET
+
 
 vba_source_control_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Modules"
 ribbon_xml_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
@@ -97,24 +99,38 @@ def build_ribbon_zip():
 
     guid=str(uuid.uuid4()).replace('-', '')[:16]
 
+    """
+        the .rels files are written directly from XML string built in procedure
+        the [Content_Types].xml file needs to include additional parameter for the 'jpg' extension
+    """
     for itm in [itm for itm in z.infolist() if itm.filename != r'_rels/.rels']:
         buffer = z.read(itm.filename)
-        copy.writestr(itm, buffer)
+        if itm.filename == "[Content_Types].xml":
+            # Modify the [Content_Types].xml file to include the jpg reference
+            # <Default Extension="jpg" ContentType="image/.jpg" />
+            # copy the XML from the original zip archive, this file has not been copied in the above loop
+            root = ET.fromstring(buffer)
 
-    # Append the Logo file to the .zip and create the archive
-    copy.write(ribbon_logo_path, r'\CustomUI\images\jdplogo.jpg')
+            ET.SubElement(root, '{http://schemas.openxmlformats.org/package/2006/content-types}Default', {'Extension': 'jpg', 'ContentType': 'image/.jpg'})
+
+            copy.writestr(itm, ET.tostring(root).encode('utf-8'))
+
+            # Append the Logo file to the .zip and create the archive
+            copy.write(ribbon_logo_path, r'\customUI\images\jdplogo.jpg')
+
+        else:
+            copy.writestr(itm, buffer)
 
     # append the CustomUI xml part to the .zip and create the archive
-
-    copy.write(ribbon_xml_path, r'\CustomUI\customUI14.xml')
+    copy.write(ribbon_xml_path, r'\customUI\customUI14.xml')
 
     # create the string & append the .rels to CustomUI\_rels
-    rels_xml = """<?xml version="1.0" encoding="utf-8" ?>
+    rels_xml = """<?xml version="1.0" encoding="utf-8"?>
         <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-        <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="/images/jdplogo.jpg" Id="jdplogo" />
+        <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="images/jdplogo.jpg" Id="jdplogo" />
     </Relationships>"""
 
-    copy.writestr(r'CustomUI\_rels\customUI14.xml.rels', rels_xml.encode('utf-8'))
+    copy.writestr(r'customUI\_rels\customUI14.xml.rels', rels_xml.encode('utf-8'))
 
     # get the existing _rels/.rels XML content and copy to the copied archiveI:
 
@@ -132,15 +148,12 @@ def build_ribbon_zip():
     rels_xml += r'Type="http://schemas.microsoft.com/office/2007/relationships/ui/extensibility" '
     rels_xml += r'Target="/customUI/customUI14.xml" Id="R'+guid+'" /></Relationships>'
 
-    copy.writestr(r'_rels/.rels', rels_xml.encode('utf-8'))
+    copy.writestr(r'_rels\.rels', rels_xml.encode('utf-8'))
 
     z.close()
     copy.close()
 
-    #print 'removing ' + _path
     os.remove(_path)
-    #os.remove(output_path)
-    #print 'renaming ' + copy_path + ' to ' + output_path
     os.rename(copy_path, output_path)
 
 def ref_dict(pres):
