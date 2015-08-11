@@ -35,6 +35,7 @@ vba_source_control_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Module
 ribbon_xml_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\ribbon_xml.xml"
 ribbon_logo_path = r"C:\Repos\CB\ChartBuilder\VBA\ChartBuilder_PPT\Ribbon XML\jdplogo.jpg"
 output_path = r"C:\debug\output.pptm"
+copy_path=r'C:\debug\copy.zip'
 customUI = True
 
 def build_addin(pres, path):
@@ -90,7 +91,7 @@ def build_ribbon_zip():
     """
     bom = u'\ufeff'
     _path=output_path.replace('.pptm', '.zip')
-    copy_path=r'C:\debug\copy.zip'
+
 
     # Convert to ZIP archive
     os.rename(output_path, _path)
