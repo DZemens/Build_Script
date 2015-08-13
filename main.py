@@ -14,7 +14,7 @@ This script contains methods to build a PPAM file from module code under source 
 
 :param vba_source_control_path: specify the local folder which contains the modules to be imported
 :param output_path: specify the destination path & filename (.pptm) for the build file
-;param copy_path: a temporary copy of the .ZIP archive must be created for read/write
+:param copy_path: a temporary copy of the .ZIP archive must be created for read/write
 :param ribbon_xml_path: specify the destination path & filename for the Ribbon XML
 :param ribbon_logo_path: specify the path & name of the logo file "jdplogo.jpg"
 :param CustomUI: boolean, define this as False if you do NOT want to add the CustomUI xml/etc.
