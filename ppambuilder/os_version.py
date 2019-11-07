@@ -18,5 +18,4 @@ def GetProgramFiles64():
 
 
 if __name__ == "__main__":
-
-    print Is64Windows()
+    print(f'OS is 64-bit Win? \t{Is64Windows()}')
