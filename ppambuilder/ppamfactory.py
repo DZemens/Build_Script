@@ -72,7 +72,7 @@ def build_addin(pres, is64bwin, vba_src_path, output_path):
     The .PPTM file is used for local development & debugging and
     is only usually packaged as a PPAM for Testing and Distribution
     """
-    valid_extensions = ['.bas', '.cls']
+    valid_extensions = ['.bas', '.cls', '.frm']
     try:
         # import the VB Components
         for fn in [fn for fn in os.listdir(vba_src_path) if fn[-4:] in valid_extensions]:
@@ -146,11 +146,9 @@ def build_ribbon_zip(output_path:str, copy_path:str, ribbon_logo_path:str, ribbo
         <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="images/jdplogo.jpg" Id="jdplogo" />
     </Relationships>"""
 
-    #copy.writestr(r'customUI\_rels\customUI14.xml.rels', rels_xml.encode('utf-8'))
     copy.writestr(r'customUI\_rels\customUI14.xml.rels', rels_xml)
 
     # get the existing _rels/.rels XML content and copy to the copied archiveI:
-
     rels_xml = r'<?xml version="1.0" encoding="utf-8" ?>'
     rels_xml += r'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
     rels_xml += r'<Relationship Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/'
