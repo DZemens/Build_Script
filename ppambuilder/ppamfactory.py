@@ -5,10 +5,12 @@ import zipfile
 import uuid
 import xml.etree.ElementTree as ET
 
+from collections import namedtuple
 from win32com import client
 
 from ppambuilder import os_version
 
+PPAMOutput = namedtuple('PPAMOutput', ['output_path', 'has_custom_ui', 'index', 'success'])
 
 class PPAMFactory:
     """
@@ -19,6 +21,7 @@ class PPAMFactory:
         self._app = None
         self._is64bwin = os_version.Is64Windows()
         self._dispatch()
+        self._output_list = []
 
     def __del__(self):
         """
@@ -33,6 +36,14 @@ class PPAMFactory:
             self._app = client.Dispatch("POWERPOINT.APPLICATION")
 
     @property
+    def output_list(self):
+        return self._output_list
+
+    @output_list.setter
+    def output_list(self, value):
+        self._output_list = value
+
+    @property
     def is64bwin(self):
         return self._is64bwin
 
@@ -44,19 +55,19 @@ class PPAMFactory:
         """
         return self._app
 
-    def create(self, vba_src_path:str, ribbon_path:str, logo_path:str, output_path:str, copy_path:str, custom_ui:bool=True):
+    def create(self, vba_src_path: str, output_path: str, copy_path: str, ribbon_path:str='', logo_path:str=''):
         """
-        :param vba_src_path: full path + filename of the VBA modules (.bas, .frm, .cls files)
+        :param vba_src_path: full path containing all the VBA modules (.bas, .frm, .cls files)
         :param ribbon_path: full path + filename of the XML file containg the customUI XML part.
         :param logo_path: full path + filename of the logo .JPG file or None
         :param output_path: full path + filename of the output PPAM
         :param copy_path: full path + filename of the temporary copy of the ZIP archive (PPAM)
-        :param custom_ui: bool, whether to include a CustomUI component
 
         .. note: the inclusion of the custom UI may not be universally applicable. it expects a logo_path for this
                 particular use-case.
 
         """
+        custom_ui = os.path.exists(ribbon_path)
         self._dispatch()
         pres = self.app.Presentations.Add(False)
         pres.Slides.AddSlide(1, pres.SlideMaster.CustomLayouts(1))
@@ -64,9 +75,13 @@ class PPAMFactory:
             # Save the new file with VBProject components
             pres.SaveAs(output_path)
             pres.Close()
-            if custom_ui:
+            if custom_ui and os.path.exists(ribbon_path):
                 build_ribbon_zip(output_path, copy_path, ribbon_path, logo_path)
+            ppam = PPAMOutput(output_path, custom_ui, len(self.output_list), True)
+        else:
+            ppam = PPAMOutput(output_path, custom_ui, len(self.output_list), False)
 
+        self.output_list.append(ppam)
 
 
 def build_addin(pres, is64bwin, vba_src_path, output_path):
