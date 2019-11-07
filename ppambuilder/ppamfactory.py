@@ -46,6 +46,15 @@ class PPAMFactory:
 
     def create(self, vba_src_path:str, ribbon_path:str, logo_path:str, output_path:str, copy_path:str, custom_ui:bool=True):
         """
+        :param vba_src_path: full path + filename of the VBA modules (.bas, .frm, .cls files)
+        :param ribbon_path: full path + filename of the XML file containg the customUI XML part.
+        :param logo_path: full path + filename of the logo .JPG file or None
+        :param output_path: full path + filename of the output PPAM
+        :param copy_path: full path + filename of the temporary copy of the ZIP archive (PPAM)
+        :param custom_ui: bool, whether to include a CustomUI component
+
+        .. note: the inclusion of the custom UI may not be universally applicable. it expects a logo_path for this
+                particular use-case.
 
         """
         self._dispatch()
@@ -56,7 +65,8 @@ class PPAMFactory:
             pres.SaveAs(output_path)
             pres.Close()
             if custom_ui:
-                build_ribbon_zip(output_path, copy_path, logo_path, ribbon_path)
+                build_ribbon_zip(output_path, copy_path, ribbon_path, logo_path)
+
 
 
 def build_addin(pres, is64bwin, vba_src_path, output_path):
@@ -99,9 +109,12 @@ def build_addin(pres, is64bwin, vba_src_path, output_path):
         raise Exception
 
 
-def build_ribbon_zip(output_path:str, copy_path:str, ribbon_logo_path:str, ribbon_xml_path:str):
+def build_ribbon_zip(output_path:str, copy_path:str, ribbon_xml_path:str, ribbon_logo_path:str=None):
 
     """
+
+    .. todo: Ensure this works with the ribbon logo. This is untested in python 3.
+
         build_ribbon_zip handles manipulation of the .ZIP contents and places the
         necessary components within the PPTM ZIP archive structure
         3. converts the PPTM to a .ZIP
@@ -130,23 +143,24 @@ def build_ribbon_zip(output_path:str, copy_path:str, ribbon_logo_path:str, ribbo
             # Modify the [Content_Types].xml file to include the jpg reference
             # <Default Extension="jpg" ContentType="image/.jpg" />
             # copy the XML from the original zip archive, this file has not been copied in the above loop
-            root = ET.fromstring(buffer)
-            ET.SubElement(root, '{http://schemas.openxmlformats.org/package/2006/content-types}Default',
-                          {'Extension': 'jpg', 'ContentType': 'image/.jpg'})
-            copy.writestr(itm, ET.tostring(root).encode('utf-8'))
-            # Append the Logo file to the .zip and create the archive
-            copy.write(ribbon_logo_path, r'\customUI\images\jdplogo.jpg')
+            if ribbon_logo_path:
+                root = ET.fromstring(buffer)
+                ET.SubElement(root, '{http://schemas.openxmlformats.org/package/2006/content-types}Default',
+                              {'Extension': 'jpg', 'ContentType': 'image/.jpg'})
+                copy.writestr(itm, ET.tostring(root))
+                # Append the Logo file to the .zip and create the archive
+                copy.write(ribbon_logo_path, r'\customUI\images\ribbonlogo.jpg')
 
     # append the CustomUI xml part to the .zip and create the archive
     copy.write(ribbon_xml_path, r'\customUI\customUI14.xml')
 
-    # create the string & append the .rels to CustomUI\_rels
-    rels_xml = """<?xml version="1.0" encoding="utf-8"?>
-        <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
-        <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="images/jdplogo.jpg" Id="jdplogo" />
-    </Relationships>"""
-
-    copy.writestr(r'customUI\_rels\customUI14.xml.rels', rels_xml)
+    if ribbon_logo_path:
+        # create the string & append the .rels to CustomUI\_rels
+        rels_xml = """<?xml version="1.0" encoding="utf-8"?>
+            <Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+            <Relationship Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="images/ribbonlogo.jpg" Id="ribbonlogo" />
+        </Relationships>"""
+        copy.writestr(r'customUI\_rels\customUI14.xml.rels', rels_xml)
 
     # get the existing _rels/.rels XML content and copy to the copied archiveI:
     rels_xml = r'<?xml version="1.0" encoding="utf-8" ?>'
