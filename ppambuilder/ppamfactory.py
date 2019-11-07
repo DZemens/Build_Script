@@ -98,9 +98,12 @@ def build_addin(pres, is64bwin, vba_src_path, output_path):
     is only usually packaged as a PPAM for Testing and Distribution
     """
     valid_extensions = ['.bas', '.cls', '.frm']
+    valid_modules = [fn for fn in os.listdir(vba_src_path) if fn[-4:] in valid_extensions]
+    # clean invalid unix line-endings...
+    clean_modules(vba_src_path, valid_modules)
     try:
         # import the VB Components
-        for fn in [fn for fn in os.listdir(vba_src_path) if fn[-4:] in valid_extensions]:
+        for fn in valid_modules:
             pres.VBProject.VBComponents.Import(os.path.join(vba_src_path, fn))
 
         refs = ref_dict(pres, is64bwin)
@@ -123,6 +126,27 @@ def build_addin(pres, is64bwin, vba_src_path, output_path):
     except Exception:
         raise Exception
 
+def clean_modules(vba_src_path, valid_modules):
+    """
+    replaces unix line endings \n with windows line endings \r\n
+
+    this is an edge case I encountered when using modules extracted from a ZIP file downloaded from my G Drive.
+    the files contained unix-style line-termination characters instead of windows-style
+    see: https://github.com/VBA-tools/VBA-Web/issues/24
+
+    this assumes we are read/write the files on a Win OS.
+
+    """
+    line_end = '\r\n'
+    for fn in valid_modules:
+        fullname = os.path.join(vba_src_path,fn)
+        with open(fullname, 'r') as file:
+            lines = file.readlines()
+        #for i, line in enumerate(lines):
+        #    if line[-2:] != '\r\n':
+        #        lines[i] = line[:-1] + '\r\n'
+        with open(fullname, 'w') as file:
+            file.writelines(lines)
 
 def build_ribbon_zip(output_path:str, copy_path:str, ribbon_xml_path:str, ribbon_logo_path:str=None):
 
